@@ -38,24 +38,47 @@ function game(view, inp) {
 
 	const W = 8;
 	const H = 8;
+	const DBL_TIMEOUT = 300; //milliseconds
 
 	view.fit(W + 0.5, H + 0.5);
 	view.focus(4,4);
 
 	const field = fieldOn2dArray(null, W,H);
 
+	var lt = 0;
+	var lx = 0;
+	var ly = 0;
+	var x = 0;
+	var y = 0;
+	var t = 0;
 	var fieldIsPopulated = false;
 	function run() {
-		var x,y;
+		var dbl = false;
 		while ((e = inp.get()) != undefined) {
+			lt = t;
+			lx = x;
+			ly = y;
+			t = e.timeStamp; // milliseconds
 			x = Math.floor(e.jglX);
 			y = Math.floor(e.jglY);
+
+			if (
+				(t - lt < DBL_TIMEOUT)
+				&& (x == lx && y == ly)
+			) { dbl = true; }
+
 			if (!fieldIsPopulated) {
 				layMines(field, W,H,8, x,y);
 				fieldIsPopulated = true;
+				dig(field, x,y);
 			}
-			dig(field, x,y);
-			flag(field, ...randomSquare(W,H));
+
+			if ( dbl || (field(x,y) & DUG)) {
+				dig(field, x,y);
+			} else {
+				flag(field, x,y);
+			}
+
 		}
 
 		drawField(view.rnd, field, W,H);
@@ -70,7 +93,7 @@ const menujson = `{
 	"home": {
 		"buttons": [
 			{ "label":"play", "exit":0 }
-			, { "label":"help", "link":"" }
+			, { "label":"placeholder", "link":"" }
 		]
 	}
 }`

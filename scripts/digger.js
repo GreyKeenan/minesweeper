@@ -51,12 +51,12 @@ function digDug(field, x,y) {
 	const here = field(x,y);
 }
 
-function dig(field, x,y, preventDug=false) {
+function dig(field, x,y, ignoreFlag=true, preventDug=false) {
 	//sub-calls need to set preventDug true to prevent inf loops
 	var here = field(x,y);
 	if (
 		(here == null)
-		|| (here & FLAG)
+		|| ((here & FLAG) && !ignoreFlag)
 		|| ((here & DUG) && preventDug)
 	) { return null; }
 
@@ -64,10 +64,11 @@ function dig(field, x,y, preventDug=false) {
 		const mines = here & COUNT;
 		if (mines < 0 || mines > 8) { throw new Error("impossible count"); }
 		const flags = countNeighbors(field,x,y,FLAG);
+		console.log("flags, mines: ", flags,mines);
 		if (flags < mines) { return null; }
 		var hit = false;
 		for (var i = 0; i < 8; i += 1) {
-			if (dig(field, x+nigh[i][0], y+nigh[i][1], true)) {
+			if (dig(field, x+nigh[i][0], y+nigh[i][1], false, true)) {
 				hit  = true;
 			}
 		}
@@ -75,6 +76,7 @@ function dig(field, x,y, preventDug=false) {
 	}
 
 	here = here | DUG;
+	here = here & (~FLAG); // have to unset or countflags fails
 	field(x,y, here);
 
 	if (here & MINE) { return 1; }
@@ -84,7 +86,7 @@ function dig(field, x,y, preventDug=false) {
 	field(x,y, here | n);
 	if (n == 0) {
 		for (var i = 0; i < 8; i += 1) {
-			dig(field, x+nigh[i][0], y+nigh[i][1], true);
+			dig(field, x+nigh[i][0], y+nigh[i][1], false, true);
 		}
 	}
 

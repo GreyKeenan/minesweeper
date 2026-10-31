@@ -112,7 +112,7 @@ function randomSquare(w,h) {
 }
 
 function layMines(field, w,h,m, x,y,s=1) { // width, height, mineCount, fistTap, safety
-	if (m > w*h / 5) { throw new Error("this could take forever"); }
+	if (m > w*h / 4) { throw new Error("this could take forever"); }
 	if (x < 0 || x >= w || y < 0 || y >= h) { throw new Error("out of bounds"); }
 
 	function layMine(p,q) {

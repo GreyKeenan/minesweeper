@@ -1,4 +1,18 @@
 
+const EASY = {
+	size: 81,
+	percent: 10/81,
+};
+const MEDIUM = {
+	size: 256,
+	percent: 5/32,
+};
+const HARD = {
+	size: 480,
+	percent: 99/480,
+};
+const DIFFICULTIES = [ EASY, MEDIUM, HARD ];
+
 function drawField(rnd, field, w,h) {
 	var here;
 	for (var i = 0; i < w; i += 1) {
@@ -30,18 +44,46 @@ function drawField(rnd, field, w,h) {
 	}
 }
 
-function game(view, inp) {
+function findRatio(div, difficultyIndex) {
+	const size = DIFFICULTIES[difficultyIndex].size;
+
+	const viewratio = div.clientHeight / div.clientWidth;
+	console.log("ratio: ", viewratio);
+
+	var width = 0;
+	var difference = 0;
+	for (var i = 1; i <= Math.floor(Math.sqrt(size)); i += 1) {
+		var check = i * Math.floor(i * viewratio);
+		var diffnow = Math.abs(check - size);
+		console.log("i ", i,
+			" / width ", width,
+			" / diffnow ", diffnow,
+			" / difference ", difference,
+		);
+		if (diffnow < difference || difference == 0) {
+			width = i;
+			difference = diffnow;
+		}
+	}
+
+	return [width, Math.floor(width * viewratio)];
+}
+
+function game(view, inp, difficulty) {
 	inp.reset();
 	inp.watch("pointerdown");
 
 	view.backgroundColor("black");
 
-	const W = 8;
-	const H = 8;
+	const [W,H] = findRatio(view.div, difficulty);
+	const M = Math.floor((W*H*DIFFICULTIES[difficulty].percent));
+	console.log(W, "x", H, "-", M);
+	//const W = 8;
+	//const H = 8;
 	const DBL_TIMEOUT = 300; //milliseconds
 
 	view.fit(W + 0.5, H + 0.5);
-	view.focus(4,4);
+	view.focus(W/2,H/2);
 
 	const field = fieldOn2dArray(null, W,H);
 
@@ -68,7 +110,7 @@ function game(view, inp) {
 			) { dbl = true; }
 
 			if (!fieldIsPopulated) {
-				layMines(field, W,H,8, x,y);
+				layMines(field, W,H,M, x,y);
 				fieldIsPopulated = true;
 				dig(field, x,y);
 			}
@@ -89,6 +131,7 @@ function game(view, inp) {
 	run();
 }
 
+/*
 const menujson = `{
 	"home": {
 		"buttons": [
@@ -97,6 +140,7 @@ const menujson = `{
 		]
 	}
 }`
+*/
 
 
 function main(divid) {
@@ -105,14 +149,14 @@ function main(divid) {
 	const inp = new InputQueue(div, view.rnd.space);
 
 	startController(listMenu,
-		view, inp, menujson,
+		view, inp, exampleListMenu,
 		{
 			backgroundColor:"black",
 			//buttonColor:"white",
 			//textColor:"black",
 		}
 	).then((exitStatus)=>{
-		game(view, inp);
+		game(view, inp, exitStatus);
 	});
 
 }

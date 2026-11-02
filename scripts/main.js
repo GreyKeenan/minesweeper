@@ -13,60 +13,60 @@ const HARD = {
 };
 const DIFFICULTIES = [ EASY, MEDIUM, HARD ];
 
-function drawField(rnd, field, w,h) {
+function drawField(rnd, field, w,h, drawSprite) {
 	var here;
 	for (var i = 0; i < w; i += 1) {
 		for (var j = 0; j < h; j += 1) {
 			here = field(i,j);
 			if (!(here & DUG)) {
-				rnd.setColor("forestgreen");
-				rnd.fillRect(i,j, 0.9,0.9);
-				// draw rlags
 				if ((here & FLAG) != 0) {
-					rnd.setColor("black");
-					rnd.setFont( "monospace", 0.5 );
-					rnd.write("f", i + 0.1, j + 0.6, 0.9);
+					drawSprite(13,i,j,1,1);
+					continue;
 				}
+				drawSprite(12,i,j,1,1);
 			} else if (here & MINE) {
-				rnd.setColor("red");
-				rnd.fillRect(i,j, 0.9,0.9);
+				drawSprite(11,i,j,1,1);
 			} else {
-				rnd.setColor("tan");
-				rnd.fillRect(i,j, 0.9,0.9);
-				// draw number
-				if ((here & COUNT) != 0) {
-					rnd.setColor("black");
-					rnd.setFont( "monospace", 0.5 );
-					rnd.write(String(here & COUNT), i + 0.1, j + 0.6, 0.9);
+				if ((here & COUNT) == 0) {
+					drawSprite(10,i,j,1,1);
+				} else {
+					drawSprite(here & COUNT,i,j,1,1);
 				}
 			}
 		}
 	}
 }
 
-function findRatio(div, difficultyIndex) {
-	const size = DIFFICULTIES[difficultyIndex].size;
+function findRatio(w,h, size) {
+	if (w <= h) {
+		const viewratio = h/w;
+		var width = 0;
+		var difference = 0;
+		const maxTest = Math.floor(Math.sqrt(size));
+		for (var i = 1; i <= maxTest; i += 1) {
+			var check = i * Math.floor(i * viewratio);
+			var diffnow = Math.abs(check - size);
+			if (diffnow < difference || difference == 0) {
+				width = i;
+				difference = diffnow;
+			}
+		}
+		return [width, Math.floor(width * viewratio)];
+	}
 
-	const viewratio = div.clientHeight / div.clientWidth;
-	console.log("ratio: ", viewratio);
-
-	var width = 0;
+	const viewratio = w/h;
+	var height = 0;
 	var difference = 0;
-	for (var i = 1; i <= Math.floor(Math.sqrt(size)); i += 1) {
+	const maxTest = Math.floor(Math.sqrt(size));
+	for (var i = 1; i <= maxTest; i += 1) {
 		var check = i * Math.floor(i * viewratio);
 		var diffnow = Math.abs(check - size);
-		console.log("i ", i,
-			" / width ", width,
-			" / diffnow ", diffnow,
-			" / difference ", difference,
-		);
 		if (diffnow < difference || difference == 0) {
-			width = i;
+			height = i;
 			difference = diffnow;
 		}
 	}
-
-	return [width, Math.floor(width * viewratio)];
+	return [Math.floor(height * viewratio), height];
 }
 
 function game(view, inp, difficulty) {
@@ -75,12 +75,13 @@ function game(view, inp, difficulty) {
 
 	view.backgroundColor("black");
 
-	const [W,H] = findRatio(view.div, difficulty);
-	const M = Math.floor((W*H*DIFFICULTIES[difficulty].percent));
+	const [W,H] = findRatio(view.div.clientWidth, view.div.clientHeight, DIFFICULTIES[difficulty].size);
+	const M = Math.round((W*H*DIFFICULTIES[difficulty].percent));
 	console.log(W, "x", H, "-", M);
-	//const W = 8;
-	//const H = 8;
+
 	const DBL_TIMEOUT = 300; //milliseconds
+
+	const drawSprite = view.rnd.createSpritesheet(document.getElementById("banana"), 8,8, 4,4);
 
 	view.fit(W + 0.5, H + 0.5);
 	view.focus(W/2,H/2);
@@ -109,6 +110,8 @@ function game(view, inp, difficulty) {
 				&& (x == lx && y == ly)
 			) { dbl = true; }
 
+			if ( x < 0 || y < 0 || x >= W || y >= H) { continue; }
+
 			if (!fieldIsPopulated) {
 				layMines(field, W,H,M, x,y);
 				fieldIsPopulated = true;
@@ -123,7 +126,7 @@ function game(view, inp, difficulty) {
 
 		}
 
-		drawField(view.rnd, field, W,H);
+		drawField(view.rnd, field, W,H, drawSprite);
 		view.rnd.render();
 
 		requestAnimationFrame(run);

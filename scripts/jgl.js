@@ -136,22 +136,28 @@ class LayeredRenderer { // manages the canvases
 	drawImage(image, x,y,w,h, z=0) {
 		this.contexts[z].drawImage(
 			image,
-			this.space.fx(x),this.space.fy(y),
-			this.space.fs(w),this.space.fs(h),
+			Math.floor(this.space.fx(x)),
+			Math.floor(this.space.fy(y)),
+			Math.ceil(this.space.fs(w)),
+			Math.ceil(this.space.fs(h)),
 		);
 	}
 	drawCrop(image, sx,sy,sw,sh, x,y,w,h, z=0) {
 		this.contexts[z].drawImage(
 			image,
 			sx,sy,sw,sh, // crop dimensions
-			this.space.fx(x),this.space.fy(y),
-			this.space.fs(w),this.space.fs(h),
+			Math.floor(this.space.fx(x)),
+			Math.floor(this.space.fy(y)),
+			Math.ceil(this.space.fs(w)),
+			Math.ceil(this.space.fs(h)),
 		);
 	}
 	fillRect(x,y,w,h, z=0) {
 		this.contexts[z].fillRect(
-			this.space.fx(x),this.space.fy(y),
-			this.space.fs(w),this.space.fs(h),
+			Math.floor(this.space.fx(x)),
+			Math.floor(this.space.fy(y)),
+			Math.ceil(this.space.fs(w)),
+			Math.ceil(this.space.fs(h)),
 		);
 	}
 	write(text, x,y, maxWidth, z=0) {
@@ -160,6 +166,20 @@ class LayeredRenderer { // manages the canvases
 			this.space.fx(x), this.space.fy(y),
 			this.space.fs(maxWidth),
 		);
+	}
+
+	createSpritesheet(image, sw,sh, w,h) { //sprite width/height, sprites per w/h
+		if (image == null) { throw new Error("null image given"); }
+		return (i, ...args) => {
+			const x = i % w;
+			const y = Math.floor(i / w);
+
+			this.drawCrop(
+				image,
+				x * sw, y * sh, sw,sh,
+				...args,
+			);
+		};
 	}
 
 }
@@ -203,8 +223,8 @@ class LayeredResizeManager { // manages the resizing events
 	}
 
 	refitfocus() {
-		this.rnd.space.focusBox(this.focusx, this.focusy, this.div.clientWidth, this.div.clientHeight);
 		this.rnd.space.fit(this.fitx, this.fity, this.div.clientWidth, this.div.clientHeight);
+		this.rnd.space.focusBox(this.focusx, this.focusy, this.div.clientWidth, this.div.clientHeight);
 	}
 }
 

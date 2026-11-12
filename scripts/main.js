@@ -13,21 +13,30 @@ const HARD = {
 };
 const DIFFICULTIES = [ EASY, MEDIUM, HARD ];
 
-function drawField(rnd, field, w,h, drawSprite) {
+function drawField(drawSprite, field, w,h, hideDecorations, reveal) {
 	var here;
 	for (var i = 0; i < w; i += 1) {
 		for (var j = 0; j < h; j += 1) {
 			here = field(i,j);
 			if (!(here & DUG)) {
-				if ((here & FLAG) != 0) {
-					drawSprite(13,i,j,1,1);
+				//if (reveal && (here & MINE)) {
+					//drawSprite(11,i,j,1,1); // mine
+					//drawSprite(14,i,j,1,1); // X
+					//continue
+				//}
+				if ((here & FLAG) && !hideDecorations) {
+					if (reveal && !(here & MINE)) {
+						drawSprite(14,i,j,1,1); // X
+					} else {
+						drawSprite(13,i,j,1,1); // flag
+					}
 					continue;
 				}
-				drawSprite(12,i,j,1,1);
+				drawSprite(12,i,j,1,1); // undug
 			} else if (here & MINE) {
-				drawSprite(11,i,j,1,1);
-			} else {
-				if ((here & COUNT) == 0) {
+				drawSprite(11,i,j,1,1); // mine
+			} else { // dug non-mine
+				if (hideDecorations || ((here & COUNT) == 0) ) {
 					drawSprite(10,i,j,1,1);
 				} else {
 					drawSprite(here & COUNT,i,j,1,1);
@@ -73,7 +82,7 @@ function game(view, inp, difficulty) {
 	inp.reset();
 	inp.watch("pointerdown");
 
-	view.backgroundColor("black");
+	view.backgroundColor("#324056");
 
 	const [W,H] = findRatio(view.div.clientWidth, view.div.clientHeight, DIFFICULTIES[difficulty].size);
 	const M = Math.round((W*H*DIFFICULTIES[difficulty].percent));
@@ -88,6 +97,11 @@ function game(view, inp, difficulty) {
 
 	const field = fieldOn2dArray(null, W,H);
 
+	// rendering flags
+	var hideDecorations = false;
+	var reveal = false;
+
+	var done = false;
 	var lt = 0;
 	var lx = 0;
 	var ly = 0;
@@ -95,9 +109,11 @@ function game(view, inp, difficulty) {
 	var y = 0;
 	var t = 0;
 	var fieldIsPopulated = false;
+	var totalDug = 0;
+	var totalHit = 0;
 	function run() {
 		var dbl = false;
-		while ((e = inp.get()) != undefined) {
+		while ( ((e = inp.get()) != undefined) && !done ) {
 			lt = t;
 			lx = x;
 			ly = y;
@@ -115,18 +131,30 @@ function game(view, inp, difficulty) {
 			if (!fieldIsPopulated) {
 				layMines(field, W,H,M, x,y);
 				fieldIsPopulated = true;
-				dig(field, x,y);
+				dbl = true;
 			}
 
 			if ( dbl || (field(x,y) & DUG)) {
-				dig(field, x,y);
+				var [dug,hit] = dig(field, x,y);
+				//console.log(dug, hit);
+				totalDug += dug;
+				totalHit += hit;
+				if (totalHit) {
+					reveal = true;
+					done = true;
+				} else if (totalDug >= W*H - M) {
+					hideDecorations = true;
+					done = true;
+				}
+				console.log(totalDug, totalHit, W*H-M, hideDecorations, reveal, done);
 			} else {
 				flag(field, x,y);
 			}
 
 		}
 
-		drawField(view.rnd, field, W,H, drawSprite);
+
+		drawField(drawSprite, field, W,H, hideDecorations, reveal);
 		view.rnd.render();
 
 		requestAnimationFrame(run);
@@ -154,9 +182,9 @@ function main(divid) {
 	startController(listMenu,
 		view, inp, exampleListMenu,
 		{
-			backgroundColor:"black",
-			//buttonColor:"white",
-			//textColor:"black",
+			backgroundColor:"#324056",
+			buttonColor:"#557185",
+			textColor:"#ffd079",
 		}
 	).then((exitStatus)=>{
 		game(view, inp, exitStatus);

@@ -268,6 +268,10 @@ class InputQueue {
 		this.div = div;
 		this.space = space; // iSpace
 		this.div.style.touchAction = "manipulation";
+		this.div.style.userSelect = "none";
+		this.div.style.msUserSelect = "none";
+		this.div.style.webkitUserSelect = "none";
+		this.div.style.webkitTapHighlightColor = "none";
 			// disable double-tap zoom
 			// this.canvas.style.overscrollBehavior = "none"
 		this.q = [];

@@ -3,7 +3,7 @@ const exampleListMenu = `{
 	"home": {
 		"buttons": [
 			{ "label":"play", "menu":"difficultySelect" }
-			, { "label":"help", "link":"https://google.com" }
+			, { "label":"help", "link":"https://minesweepergame.com/strategy/patterns.php" }
 		]
 	}
 	, "difficultySelect": {

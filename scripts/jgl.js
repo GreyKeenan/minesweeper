@@ -267,7 +267,7 @@ class InputQueue {
 	constructor(div, space) {
 		this.div = div;
 		this.space = space; // iSpace
-		this.div.style.touchAction = "manipulation";
+		this.div.style.touchAction = "none"; // "manipulation" keeps scroll & pinch-zoom
 		this.div.style.userSelect = "none";
 		this.div.style.msUserSelect = "none";
 		this.div.style.webkitUserSelect = "none";

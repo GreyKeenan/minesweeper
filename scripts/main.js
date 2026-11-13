@@ -113,7 +113,13 @@ function game(view, inp, difficulty) {
 	var totalHit = 0;
 	function run() {
 		var dbl = false;
-		while ( ((e = inp.get()) != undefined) && !done ) {
+		while ((e = inp.get()) != undefined) {
+
+			if (done) {
+				switchToMenu(view, inp, "difficultySelect");
+				return;
+			}
+
 			lt = t;
 			lx = x;
 			ly = y;
@@ -146,7 +152,7 @@ function game(view, inp, difficulty) {
 					hideDecorations = true;
 					done = true;
 				}
-				console.log(totalDug, totalHit, W*H-M, hideDecorations, reveal, done);
+				//console.log(totalDug, totalHit, W*H-M, hideDecorations, reveal, done);
 			} else {
 				flag(field, x,y);
 			}
@@ -162,16 +168,19 @@ function game(view, inp, difficulty) {
 	run();
 }
 
-/*
-const menujson = `{
-	"home": {
-		"buttons": [
-			{ "label":"play", "exit":0 }
-			, { "label":"placeholder", "link":"" }
-		]
-	}
-}`
-*/
+function switchToMenu(view, inp, home) {
+	startController(listMenu,
+		view, inp, exampleListMenu,
+		{
+			backgroundColor:"#324056",
+			buttonColor:"#557185",
+			textColor:"#ffd079",
+			home:home,
+		}
+	).then((exitStatus)=>{
+		game(view, inp, exitStatus);
+	});
+}
 
 
 function main(divid) {
@@ -179,16 +188,7 @@ function main(divid) {
 	const view = new LayeredView(div);
 	const inp = new InputQueue(div, view.rnd.space);
 
-	startController(listMenu,
-		view, inp, exampleListMenu,
-		{
-			backgroundColor:"#324056",
-			buttonColor:"#557185",
-			textColor:"#ffd079",
-		}
-	).then((exitStatus)=>{
-		game(view, inp, exitStatus);
-	});
+	switchToMenu(view, inp, "home");
 
 }
 

@@ -1,7 +1,7 @@
 
 const EASY = {
-	size: 81,
-	percent: 10/81,
+	size: 64, // 81&10 in remake vs 64&10 originally
+	percent: 10/64,
 };
 const MEDIUM = {
 	size: 256,
